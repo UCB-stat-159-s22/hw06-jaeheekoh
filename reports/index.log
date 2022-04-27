@@ -1,0 +1,82 @@
+Traceback (most recent call last):
+  File "/srv/conda/envs/notebook/lib/python3.9/site-packages/jupyter_cache/executors/utils.py", line 51, in single_nb_execution
+    executenb(
+  File "/srv/conda/envs/notebook/lib/python3.9/site-packages/nbclient/client.py", line 1093, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+  File "/srv/conda/envs/notebook/lib/python3.9/site-packages/nbclient/util.py", line 84, in wrapped
+    return just_run(coro(*args, **kwargs))
+  File "/srv/conda/envs/notebook/lib/python3.9/site-packages/nbclient/util.py", line 62, in just_run
+    return loop.run_until_complete(coro)
+  File "/srv/conda/envs/notebook/lib/python3.9/asyncio/base_events.py", line 642, in run_until_complete
+    return future.result()
+  File "/srv/conda/envs/notebook/lib/python3.9/site-packages/nbclient/client.py", line 559, in async_execute
+    await self.async_execute_cell(
+  File "/srv/conda/envs/notebook/lib/python3.9/site-packages/nbclient/client.py", line 854, in async_execute_cell
+    self._check_raise_for_error(cell, exec_reply)
+  File "/srv/conda/envs/notebook/lib/python3.9/site-packages/nbclient/client.py", line 756, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+data_segments = 1
+if data_segments:
+    # read in the data at 4096 Hz:
+    # fn = 'L-L1_LOSC_4_V1-1126259446-32.hdf5'
+    strain, time, chan_dict = rl.loaddata('data/' + fn_L1, 'H1')
+
+    print("Contents of all the key, value pairs in chan_dict")
+    for keys,values in chan_dict.items():
+        print(keys)
+        print(values)
+
+    print('Total number of non-NaNs in these data = ',np.sum(~np.isnan(strain)))
+    print('GPS start, GPS stop and length of  all data in this file = ',time[0], time[-1],len(strain))
+
+    # select the level of data quality; default is "DATA" but "CBC_CAT3" is a conservative choice:
+    DQflag = 'CBC_CAT3'
+    # readligo.py method for computing segments (start and stop times with continuous valid data):
+    segment_list = rl.dq_channel_to_seglist(chan_dict[DQflag])
+    print('Number of segments with DQflag',DQflag,' = ',len(segment_list))
+
+    # loop over seconds and print out start, stop and length:
+    iseg = 0
+    for segment in segment_list:
+        time_seg = time[segment]
+        seg_strain = strain[segment]
+        print('GPS start, GPS stop and length of segment',iseg, \
+            'in this file = ',time_seg[0], time_seg[-1], len(seg_strain))
+        iseg = iseg+1
+        # here is where you would insert code to analyze the data in this segment.
+
+    # now look at segments with no CBC hardware injections:
+    DQflag = 'NO_CBC_HW_INJ'
+    segment_list = rl.dq_channel_to_seglist(chan_dict['NO_CBC_HW_INJ'])
+    print('Number of segments with DQflag',DQflag,' = ',len(segment_list))
+    iseg = 0
+    for segment in segment_list:
+        time_seg = time[segment]
+        seg_strain = strain[segment]
+        print('GPS start, GPS stop and length of segment',iseg, \
+            'in this file = ',time_seg[0], time_seg[-1], len(seg_strain))
+        iseg = iseg+1
+
+------------------
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mOSError[0m                                   Traceback (most recent call last)
+[0;32m<ipython-input-23-4a7754b6e6c9>[0m in [0;36m<module>[0;34m()[0m
+[1;32m      3[0m     [0;31m# read in the data at 4096 Hz:[0m[0;34m[0m[0;34m[0m[0m
+[1;32m      4[0m     [0;31m# fn = 'L-L1_LOSC_4_V1-1126259446-32.hdf5'[0m[0;34m[0m[0;34m[0m[0m
+[0;32m----> 5[0;31m     [0mstrain[0m[0;34m,[0m [0mtime[0m[0;34m,[0m [0mchan_dict[0m [0;34m=[0m [0mrl[0m[0;34m.[0m[0mloaddata[0m[0;34m([0m[0;34m'data/'[0m [0;34m+[0m [0mfn_L1[0m[0;34m,[0m [0;34m'H1'[0m[0;34m)[0m[0;34m[0m[0m
+[0m[1;32m      6[0m [0;34m[0m[0m
+[1;32m      7[0m     [0;32mprint[0m[0;34m([0m[0;34m"Contents of all the key, value pairs in chan_dict"[0m[0;34m)[0m[0;34m[0m[0m
+
+[0;32m/home/jovyan/hw06-jaeheekoh/ligotools/readligo.pyc[0m in [0;36mloaddata[0;34m(filename, ifo, tvec, readstrain)[0m
+[1;32m    163[0m [0;34m[0m[0m
+[1;32m    164[0m     [0;31m# -- Check for zero length file[0m[0;34m[0m[0;34m[0m[0m
+[0;32m--> 165[0;31m     [0;32mif[0m [0mos[0m[0;34m.[0m[0mstat[0m[0;34m([0m[0mfilename[0m[0;34m)[0m[0;34m.[0m[0mst_size[0m [0;34m==[0m [0;36m0[0m[0;34m:[0m[0;34m[0m[0m
+[0m[1;32m    166[0m         [0;32mreturn[0m [0mNone[0m[0;34m,[0m [0mNone[0m[0;34m,[0m [0mNone[0m[0;34m[0m[0m
+[1;32m    167[0m [0;34m[0m[0m
+
+[0;31mOSError[0m: [Errno 2] No such file or directory: 'data/data/L-L1_LOSC_4_V2-1126259446-32.hdf5'
+OSError: [Errno 2] No such file or directory: 'data/data/L-L1_LOSC_4_V2-1126259446-32.hdf5'
+
